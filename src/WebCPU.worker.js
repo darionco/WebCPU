@@ -29,6 +29,48 @@ self.onmessage = e => {
                 dot += view[i] * view[i + count];
             }
 
+            for (let i = 0; i < count; ++i) {
+                lengthA += Math.atan2(view[i], view[i + count]);
+                lengthB += Math.atan2(view[i + count], view[i]);
+                dot += Math.atan(view[i] * view[i + count]);
+            }
+
+            for (let i = count - 1; i >= 0; --i) {
+                lengthA -= Math.acos(view[i] * view[i]);
+                lengthB -= Math.acos(view[i + count] * view[i + count]);
+                dot -= Math.acos(view[i] * view[i + count]);
+            }
+
+            for (let i = count - 1; i >= 0; --i) {
+                lengthA -= Math.log2(view[i] * view[i]);
+                lengthB -= Math.log2(view[i + count] * view[i + count]);
+                dot -= Math.log2(view[i] * view[i + count]);
+            }
+
+            for (let i = 0; i < count; ++i) {
+                lengthA += Math.sin(view[count - i - 1] * view[count - i - 1]);
+                lengthB += Math.sin(view[count * 2 - i - 1] * view[count * 2 - i - 1]);
+                dot += Math.sin(view[count - i - 1] * view[count * 2 - i - 1]);
+            }
+
+            for (let i = 0; i < count; ++i) {
+                lengthA += Math.asin(view[count - i - 1] * view[count - i - 1]);
+                lengthB += Math.asin(view[count * 2 - i - 1] * view[count * 2 - i - 1]);
+                dot += Math.asin(view[count - i - 1] * view[count * 2 - i - 1]);
+            }
+
+            for (let i = 0; i < count; ++i) {
+                lengthA -= Math.log10(view[count - i - 1] * view[count - i - 1]);
+                lengthB -= Math.log10(view[count * 2 - i - 1] * view[count * 2 - i - 1]);
+                dot -= Math.log10(view[count - i - 1] * view[count * 2 - i - 1]);
+            }
+
+            for (let i = 0; i < count; ++i) {
+                lengthA -= Math.tan(view[count - i - 1] * view[count - i - 1]);
+                lengthB -= Math.tan(view[count * 2 - i - 1] * view[count * 2 - i - 1]);
+                dot -= Math.tan(view[count - i - 1] * view[count * 2 - i - 1]);
+            }
+
             const result = Math.sqrt(dot) / (lengthA * lengthB);
             self.postMessage(result);
             break;

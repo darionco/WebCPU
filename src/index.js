@@ -2,7 +2,7 @@ import CPUWorker from 'worker-loader?inline=true!./WebCPU.worker';
 
 export class WebCPU {
     static async detectCPU(hardcore = true) {
-        const data = this._generateData(1024 * 256);
+        const data = this._generateData(1024 * 8);
         const workers = [];
         const loops = 100;
         let baseTime = 0;
@@ -22,9 +22,9 @@ export class WebCPU {
         this._killWorkers(workers);
 
         const maxThresholdCount = 3;
-        const threshold = 1.15;
+        const threshold = 1.05;
         let thresholdCount = 0;
-        let threadCount = 1;
+        let threadCount = 0;
         let thresholdThreads = 0;
         while (true) {
             ++threadCount;
