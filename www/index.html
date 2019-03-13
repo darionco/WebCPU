@@ -8,7 +8,10 @@
 <body>
 <script>
     async function main() {
-        webcpu.WebCPU.detectCPU();
+        const start = performance.now();
+        console.log(await webcpu.WebCPU.detectCPU());
+        const end = performance.now();
+        console.log(`Took: ${end - start}ms`);
     }
 
     document.addEventListener('DOMContentLoaded', main);

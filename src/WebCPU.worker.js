@@ -18,14 +18,21 @@ self.onmessage = e => {
             }
             break;
 
-        // case 'compute': {
-        //     let dot;
-        //     let length;
-        //
-        //     for (let i = 0; i < count; ++i) {
-        //
-        //     }
-        // }
+        case 'compute': {
+            let dot = 0.0;
+            let lengthA = 0.0;
+            let lengthB = 0.0;
+
+            for (let i = 0; i < count; ++i) {
+                lengthA += Math.sqrt(view[i] * view [i]);
+                lengthB += Math.sqrt(view[i + count] * view[i + count]);
+                dot += view[i] * view[i + count];
+            }
+
+            const result  = Math.sqrt(dot) / (lengthA * lengthB);
+            self.postMessage(result);
+            break;
+        }
 
         default:
             break;
