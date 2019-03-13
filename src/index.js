@@ -46,8 +46,8 @@ export class WebCPU {
                 time += end - start;
             }
             time /= loops;
-            console.log(`Threads:${workers.length} Took:${time}ms Diff:${time/baseTime}`);
-            if (time/baseTime > threshold) {
+            console.log(`Threads:${workers.length} Took:${time}ms Diff:${time / baseTime}`);
+            if (time / baseTime > threshold) {
                 if (!thresholdThreads) {
                     thresholdThreads = threadCount - 1;
                 }
@@ -72,7 +72,7 @@ export class WebCPU {
     }
 
     static _killWorkers(workers) {
-        while(workers.length) {
+        while (workers.length) {
             workers.pop().terminate();
         }
     }

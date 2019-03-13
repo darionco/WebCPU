@@ -29,7 +29,7 @@ self.onmessage = e => {
                 dot += view[i] * view[i + count];
             }
 
-            const result  = Math.sqrt(dot) / (lengthA * lengthB);
+            const result = Math.sqrt(dot) / (lengthA * lengthB);
             self.postMessage(result);
             break;
         }
