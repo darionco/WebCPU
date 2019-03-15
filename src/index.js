@@ -16,6 +16,7 @@ export class WebCPU {
             this._killWorkers(workers);
         }
 
+        let oddCores = 0;
         let thresholdCount = 0;
         let threadCount = 0;
         let thresholdThreads = 0;
@@ -29,12 +30,19 @@ export class WebCPU {
             promises.length = 0;
 
             const stats = await this._testWorkers(workers, loops);
-            if (!this._estimateCores(baseStats, stats, 0.95)) {
+            if (!this._estimateCores(baseStats, stats, 0.9)) {
                 --threadCount;
                 ++thresholdCount;
                 if (thresholdCount > 3) {
-                    this._killWorkers(workers);
-                    break;
+                    if (threadCount % 2 && oddCores < 3) {
+                        ++oddCores;
+                        --threadCount;
+                        thresholdCount = 0;
+                        this._killWorkers([workers.pop()]);
+                    } else {
+                        this._killWorkers(workers);
+                        break;
+                    }
                 }
             } else if (thresholdCount) {
                 --threadCount;
@@ -150,7 +158,7 @@ export class WebCPU {
 
         const local = stats[stats.length - 1].iterations / stats[0].iterations;
         const global = iterations / (baseStats[0].iterations * stats.length);
-        const combined = local * 0.75 + global * 0.25;
+        const combined = local * 0.85 + global * 0.15;
         console.log(`local:${local} global:${global} estimated:${combined}`);
 
         return combined >= threshold;
