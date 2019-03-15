@@ -8,10 +8,14 @@
 <body>
 <script>
     async function main() {
+        document.body.innerText = 'Detecting CPU...';
         const start = performance.now();
-        console.log(await webcpu.WebCPU.detectCPU());
+        const result = await webcpu.WebCPU.detectCPU();
         const end = performance.now();
-        console.log(`Took: ${end - start}ms`);
+        document.body.innerText = 'Detected CPU\n';
+        document.body.innerText += `Took ${end - start}ms\n`;
+        document.body.innerText += `Physical Cores: ${result.physicalCores}\n`;
+        document.body.innerText += `Logical Cores: ${result.logicalCores}\n`;
     }
 
     document.addEventListener('DOMContentLoaded', main);
