@@ -1,65 +1,56 @@
 import CPUWorker from 'worker-loader?inline=true!./WebCPU.worker';
-import {getHardwareConcurrency} from './CoreEstimator';
 
 export class WebCPU {
-    static async detectCPU() {
-        return await getHardwareConcurrency();
-        // const workers = [];
-        // const times = [];
-        // const loops = 20;
-        // let size = 128;
-        // let baseTime;
-        //
-        // workers.push(await this._initWorker(size, size));
-        // baseTime = await this._testWorkers(workers, loops);
-        // times.push(baseTime);
-        // console.log(`Base Time: ${baseTime}`);
-        //
-        // if (hardcore) {
-        //     this._killWorkers(workers);
-        // }
-        //
-        // const maxThresholdCount = 3;
-        // const threshold = 1.15;
-        // let thresholdCount = 0;
-        // let threadCount = 0;
-        // let thresholdThreads = 0;
-        // while (true) {
-        //     ++threadCount;
-        //     const promises = [];
-        //     for (let i = workers.length; i < threadCount; ++i) {
-        //         promises.push(this._initWorker(size, size).then(worker => workers.push(worker)));
-        //     }
-        //     await Promise.all(promises);
-        //     promises.length = 0;
-        //
-        //     const time = await this._testWorkers(workers, loops);
-        //     const expected = this._getExpectedNextOffset(times, baseTime);
-        //     const diff = time - times[times.length - 1];
-        //     times.push(time);
-        //     console.log(`Threads:${workers.length} Took:${time}ms Expected:${expected} Diff:${diff}`);
-        //     if (time / baseTime > threshold) {
-        //         if (!thresholdThreads) {
-        //             thresholdThreads = threadCount - 1;
-        //         }
-        //
-        //         if (++thresholdCount >= maxThresholdCount) {
-        //             break;
-        //         }
-        //     } else {
-        //         thresholdCount = 0;
-        //         thresholdThreads = 0;
-        //     }
-        //
-        //     if (hardcore) {
-        //         this._killWorkers(workers);
-        //     }
-        // }
-        //
-        // return {
-        //     physicalCores: thresholdThreads,
-        //     logicalCores: navigator.hardwareConcurrency ? navigator.hardwareConcurrency : thresholdThreads,
-        // };
+    static async detectCPU(hardcore = false) {
+        const workers = [];
+        const loops = 10;
+        let size = 128;
+        let baseStats;
+
+        workers.push(await this._initWorker(size, size));
+        await this._testWorkers(workers, loops);
+        baseStats = await this._testWorkers(workers, loops);
+        console.log(baseStats);
+
+        if (hardcore) {
+            this._killWorkers(workers);
+        }
+
+        let thresholdCount = 0;
+        let threadCount = 0;
+        let thresholdThreads = 0;
+        while (true) {
+            ++threadCount;
+            const promises = [];
+            for (let i = workers.length; i < threadCount; ++i) {
+                promises.push(this._initWorker(size, size).then(worker => workers.push(worker)));
+            }
+            await Promise.all(promises);
+            promises.length = 0;
+
+            const stats = await this._testWorkers(workers, loops);
+            if (!this._estimateCores(baseStats, stats, 0.95)) {
+                --threadCount;
+                ++thresholdCount;
+                if (thresholdCount > 3) {
+                    this._killWorkers(workers);
+                    break;
+                }
+            } else if (thresholdCount) {
+                --threadCount;
+                --thresholdCount;
+            }
+
+            if (hardcore) {
+                this._killWorkers(workers);
+                break;
+            }
+        }
+
+        return {
+            physicalCores: threadCount,
+            logicalCores: navigator.hardwareConcurrency ? navigator.hardwareConcurrency : thresholdThreads,
+        };
     }
 
     static _killWorkers(workers) {
@@ -77,40 +68,56 @@ export class WebCPU {
     }
 
     static async _testWorkers(workers, loops) {
-        const params = this._generateParams();
+        const stats = [];
         const promises = [];
-        const extraLoops = 10;
-        const startTime = Date.now() + workers.length * 10;
+        const extraLoops = 5;
+        const startTime = Date.now() + workers.length * 5;
         let results;
-        let time = 0;
         for (let n = 0; n < loops + extraLoops; ++n) {
-            params.panX += 0.0001;
-            params.panY += 0.0001;
             for (let i = 0; i < workers.length; ++i) {
-                promises.push(this._computeWorker(workers[i], params, startTime));
+                promises.push(this._computeWorker(workers[i], i, startTime));
             }
             results = await Promise.all(promises);
-            let rs = '';
             if (n >= extraLoops) {
-                for (let i = 0; i < results.length; ++i) {
-                    rs += `T${i}:${results[i]} `;
-                    time += results[i];
-                }
+                this._addResults(stats, results);
             }
-            // console.log(rs);
             promises.length = 0;
         }
-        time /= loops * workers.length;
-        return time;
+
+        this._aggregateResults(stats, loops);
+
+        return stats;
     }
 
-    static _computeWorker(worker, params, startTime) {
+    static _addResults(stats, results) {
+        for (let i = 0; i < results.length; ++i) {
+            if (!stats[results[i].id]) {
+                stats[results[i].id] = {
+                    elapsed: 0,
+                    iterations: 0,
+                }
+            }
+            stats[results[i].id].elapsed += results[i].elapsed;
+            stats[results[i].id].iterations += results[i].iterations;
+        }
+    }
+
+    static _aggregateResults(stats, loops) {
+        for (let i = 0; i < stats.length; ++i) {
+            stats[i].elapsed /= loops;
+            stats[i].iterations /= loops;
+        }
+
+        return stats;
+    }
+
+    static _computeWorker(worker, id, startTime) {
         return new Promise(resolve => {
             worker.onmessage = e => {
                 worker.onmessage = null;
                 resolve(e.data);
             };
-            worker.postMessage({ type: 'workload', params, startTime, workload: 0x400000 });
+            worker.postMessage({type: 'workload', id, startTime});
         });
     }
 
@@ -128,16 +135,24 @@ export class WebCPU {
                 }
             };
 
-            worker.postMessage({ type: 'init', width, height });
+            worker.postMessage({type: 'init', width, height});
         });
     }
 
-    static _generateParams() {
-        return {
-            magnificationFactor: 3800,
-            maxIterations: 350,
-            panX: 0.2,
-            panY: 0.2,
+    static _estimateCores(baseStats, stats, threshold) {
+        let iterations = 0;
+        stats.sort((a, b) => b.iterations - a.iterations);
+        for (let i = 0; i < stats.length; ++i) {
+            iterations += stats[i].iterations;
         }
+
+        console.log(stats);
+
+        const local = stats[stats.length - 1].iterations / stats[0].iterations;
+        const global = iterations / (baseStats[0].iterations * stats.length);
+        const combined = local * 0.75 + global * 0.25;
+        console.log(`local:${local} global:${global} estimated:${combined}`);
+
+        return combined >= threshold;
     }
 }

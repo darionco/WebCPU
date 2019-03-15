@@ -1,7 +1,3 @@
-let view = null;
-let width = 1024;
-let height = 1024;
-
 function checkIfBelongsToMandelbrotSet(x, y, maxIterations = 350) {
     let realComponentOfResult = x;
     let imaginaryComponentOfResult = y;
@@ -20,30 +16,66 @@ function checkIfBelongsToMandelbrotSet(x, y, maxIterations = 350) {
     return 0;
 }
 
-function runMandelbrot(magnificationFactor = 8500, maxIterations = 350, panX = 0.8, panY = 0.4) {
-    for (let x = 0; x < width; x++) {
-        for (let y = 0; y < height; y++) {
-            const belongsToSet = checkIfBelongsToMandelbrotSet(x / magnificationFactor - panX, y / magnificationFactor - panY, maxIterations);
-            view[0] += y * width + x;
-            view[1] += Math.floor(belongsToSet);
+function runMandelbrot(duration, id) {
+    const width = 32784;
+    const height = 32784;
+    let magnificationFactor = 3800;
+    let maxIterations = 350;
+    let panX = 0.2;
+    let panY = 0.2;
+
+    let coordinate = 0;
+    let pixel = 0;
+
+    const start = performance.now();
+    let end = start;
+
+    let i = 0;
+    while (end - start < duration) {
+        panX += 0.01;
+        panY += 0.01;
+        magnificationFactor += 1;
+        for (let x = 0; x < width && end - start < duration; x++) {
+            for (let y = 0; y < height && end - start < duration; y++) {
+                const belongsToSet = checkIfBelongsToMandelbrotSet(x / magnificationFactor - panX, y / magnificationFactor - panY, maxIterations);
+                coordinate |= y * width + x;
+                pixel |= Math.floor(belongsToSet);
+                end = performance.now();
+                ++i;
+            }
         }
     }
+
+    return {
+        elapsed: end - start,
+        iterations: i,
+        result: coordinate ^ pixel,
+        id,
+    };
 }
 
-function runWorkload(workload) {
+function runWorkload(duration, id) {
+    const start = performance.now();
+    let end = start;
     let a = 0x08a90db3;
     let b = 0xabd209a0;
     let c = 0x29019b32;
     let d = 0x01ab3291;
+    let i;
 
-    for (let i = 0; i < workload; i++) {
+    for (i = 0; end - start < duration; ++i, end = performance.now()) {
         a = (b ^ a) >> 1;
         b = (c ^ b) << 1;
         c = (d ^ c) >> 1;
         d = (a ^ d) << 1;
     }
 
-    return a;
+    return {
+        elapsed: end - start,
+        iterations: i,
+        result: a,
+        id,
+    };
 }
 
 self.onmessage = e => {
@@ -51,31 +83,22 @@ self.onmessage = e => {
 
     switch (message.type) {
         case 'init':
-            if (!view) {
-                width = message.width ? message.width : width;
-                height = message.height ? message.height : height;
-                view = new Uint32Array(2);
-                // for (let i = 0; i < 10; ++i) {
-                //     runMandelbrot();
-                // }
-                self.postMessage('success');
-            } else {
-                self.postMessage('error');
-            }
+            runWorkload(2, 0);
+            runMandelbrot(2, 0);
+            self.postMessage('success');
             break;
 
-        case 'compute': {
+        case 'mandelbrot': {
             setTimeout(() => {
-                const start = performance.now();
-                runMandelbrot(message.params.magnificationFactor, message.params.maxIterations, message.params.panX, message.params.panY);
-                const result = performance.now() - start;
-                self.postMessage(result);
+                self.postMessage(runMandelbrot(10, message.id));
             }, message.startTime - Date.now());
             break;
         }
 
         case 'workload': {
-            self.postMessage(runWorkload(message.workload));
+            setTimeout(() => {
+                self.postMessage(runWorkload(10, message.id));
+            }, message.startTime - Date.now());
             break;
         }
 
