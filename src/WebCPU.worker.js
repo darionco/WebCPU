@@ -27,7 +27,7 @@ self.onmessage = e => {
 
     switch (message.type) {
         case 'init':
-            runWorkload(3, 0);
+            runWorkload(1, 0);
             self.postMessage('success');
             break;
 
