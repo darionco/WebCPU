@@ -1,3 +1,9 @@
+/**
+ * Function to run the numeric workload in the current thread for the specified amount of time.
+ * @param {number} duration - The duration of this workload in milliseconds
+ * @param {number} id - The id of this thread.
+ * @returns {{elapsed: number, result: number, id: *, iterations: number}}
+ */
 function runWorkload(duration, id) {
     const start = performance.now();
     let end = start;
@@ -22,6 +28,13 @@ function runWorkload(duration, id) {
     };
 }
 
+/**
+ * Handles events sent to this thread, from other threads, through the `self` object.
+ * The messages cane be:
+ * `init` - to initialize this thread, takes care of briefly running to workload to allow CPUs to cache the code
+ * `workload` - runs the workload on this thread for 10ms and returns the results to the calling thread
+ * @param {Event} e - The posted message event.
+ */
 self.onmessage = e => {
     const message = e.data;
 
