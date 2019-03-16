@@ -1,13 +1,28 @@
 import CPUWorker from 'worker-loader?inline=true!./WebCPU.worker';
 
 /**
- * Namespace for the functions used to estimate the number of cores in this machine's CPU, takes ~3 seconds.
+ * @typedef {Object} WebCPUResult
  *
- * The resulting `physicalCores` count is useful when using the CPU to compute data since repetitive math calculations
- * cannot take advantage of hyper threading and similar technologies.
+ * @property {number|null} reportedCores
+ * The result of `navigator.hardwareConcurrency` or `null` if not supported. `navigator.hardwareConcurrency` returns the
+ * total number of cores in the system, physical and logical. This is not particularly useful for data computations
+ * because logical cores do no increase and, in some cases, even hinder performance.
  *
- * The `logicalCores` count is useful when performing different tasks on multiple threads (i.e. physics in one thread,
- * animation in another, etc), in that scenario hyper threading really shines.
+ * @property {number} estimatedIdleCores
+ * This number represents the estimated number of cores that can be used to compute a repetitive task, like data
+ * computations, in parallel. The result of the estimation is affected by system workload at the time of the detection,
+ * if this number is used to spawn threads, it is recommended to re-run the detection algorithm periodically to always
+ * use an optimal number of cores when computing data.
+ *
+ * @property {number} estimatedPhysicalCores
+ * Given the reported number of cores and the result of estimated idle cores, this number represents the "best guess"
+ * for the total number of physical cores in the system. This number of threads is safe to use on all platforms.
+ */
+
+/**
+ * Namespace for the functions used to estimate the number of cores in this machine's CPU, takes ~2 seconds.
+ *
+ * Returns an object with the `reportedCores`, `estimatedIdleCores` and `estimatedPhysicalCores`.
  *
  * The core estimation is affected by the other tasks in the system, usually the OS scheduler is efficient enough that
  * light tasks (playing music, idle programs, background updates, etc) are evenly distributed across cores and so they
@@ -18,9 +33,14 @@ import CPUWorker from 'worker-loader?inline=true!./WebCPU.worker';
  *
  * The estimation is performed by running a mathematical operation in a loop for a predefined amount of time. Modern
  * CPUs run this task simultaneously across physical cores and usually each core completes a very similar number of
- * operations, once hyper threading or simply task scheduling kicks in, a few cores must share their cycles among
- * threads running. By detecting the changes in operations completed by each thread, it si possible to estimate the
+ * operations, once hyper threading (or task scheduling) kicks in, a few cores must share their cycles among
+ * threads running. By detecting the changes in operations completed by each thread, it is possible to estimate the
  * number of cores in the system.
+ *
+ * The current algorithm returns bad estimations for CPUs with asymmetric cores (usually mobile ARM chips) because, as
+ * explained above, it detects the changes in number of operations between thread counts. Asymmetric cores will complete
+ * a different number of operations depending on the power of the core the task is scheduled on. Although the returned
+ * estimations will be incorrect, they are safe to use to spawn threads.
  *
  * This method DOES NOT estimate logical cores, instead it uses `navigator.hardwareConcurrency` if available or simply
  * returns the same number as physical cores.
@@ -29,11 +49,13 @@ export class WebCPU {
     /**
      * Estimates the number of CPUs in this machine.
      * @param {boolean} hardcore - Engages hardcore mode, which kills all the workers after every test.
-     * @returns {Promise<{logicalCores: number, physicalCores: number}>} - Result of the estimation.
+     * @returns {Promise<WebCPUResult>} - Result of the estimation.
      */
-    static async detectCPU(hardcore = false) {
+    static async detectCPU(hardcore = true) {
+        const reportedCores = navigator.hardwareConcurrency ? navigator.hardwareConcurrency : null;
+        const maxCoresToTest = reportedCores ? reportedCores : Number.MAX_SAFE_INTEGER;
         const workers = [];
-        const loops = 10;
+        const loops = 2;
         let baseStats;
 
         workers.push(await this._initWorker());
@@ -48,8 +70,7 @@ export class WebCPU {
         let oddCores = 0;
         let thresholdCount = 0;
         let threadCount = 0;
-        let thresholdThreads = 0;
-        while (true) {
+        while (threadCount < maxCoresToTest) {
             ++threadCount;
             const promises = [];
             for (let i = workers.length; i < threadCount; ++i) {
@@ -63,8 +84,7 @@ export class WebCPU {
                 --threadCount;
                 ++thresholdCount;
                 if (thresholdCount > 3) {
-                    if (threadCount % 2 && oddCores < 3) {
-                        ++oddCores;
+                    if (threadCount % 2 && ++oddCores < 2) {
                         --threadCount;
                         thresholdCount = 0;
                         this._killWorkers([workers.pop()]);
@@ -80,13 +100,20 @@ export class WebCPU {
 
             if (hardcore) {
                 this._killWorkers(workers);
-                break;
             }
         }
 
+        let physicalCores;
+        if (reportedCores && threadCount < reportedCores) {
+            physicalCores = Math.floor(reportedCores / 2);
+        } else {
+            physicalCores = threadCount;
+        }
+
         return {
-            physicalCores: threadCount,
-            logicalCores: navigator.hardwareConcurrency ? navigator.hardwareConcurrency : thresholdThreads,
+            reportedCores: reportedCores,
+            estimatedIdleCores: threadCount,
+            estimatedPhysicalCores: physicalCores,
         };
     }
 
@@ -113,8 +140,8 @@ export class WebCPU {
     static async _testWorkers(workers, loops) {
         const stats = [];
         const promises = [];
-        const extraLoops = 5;
-        const startTime = Date.now() + workers.length * 5;
+        const extraLoops = 2;
+        const startTime = Date.now() + workers.length * 3;
         let results;
         for (let n = 0; n < loops + extraLoops; ++n) {
             for (let i = 0; i < workers.length; ++i) {
@@ -232,7 +259,7 @@ export class WebCPU {
         const local = stats[stats.length - 1].iterations / stats[0].iterations;
         const global = iterations / (baseStats[0].iterations * stats.length);
         const combined = local * 0.85 + global * 0.15;
-        // console.log(`local:${local} global:${global} estimated:${combined}`);
+        // console.log(`threads:${stats.length} local:${local} global:${global} estimated:${combined}\n`);
 
         return combined >= threshold;
     }
