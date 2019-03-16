@@ -48,7 +48,7 @@ import CPUWorker from 'worker-loader?inline=true!./WebCPU.worker';
 export class WebCPU {
     /**
      * Estimates the number of CPUs in this machine.
-     * @param {boolean} hardcore - Engages hardcore mode, which kills all the workers after every test.
+     * @param {boolean=} hardcore - Engages hardcore mode, which kills all the workers after every test.
      * @returns {Promise<WebCPUResult>} - Result of the estimation.
      */
     static async detectCPU(hardcore = true) {
