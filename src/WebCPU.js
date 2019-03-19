@@ -1,4 +1,4 @@
-import CPUWorker from 'worker-loader?{ inline: true, fallback: false }!./WebCPU.worker';
+import CPUWorker from 'worker!./WebCPU.worker.js';
 
 /**
  * Utility to estimate the number of usable cores to perform data processing in the browser, takes ~2 seconds. Returns
