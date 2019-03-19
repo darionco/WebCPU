@@ -1,30 +1,30 @@
-import CPUWorker from 'worker-loader?inline=true!./WebCPU.worker';
+import CPUWorker from 'worker-loader?{ inline: true, fallback: false }!./WebCPU.worker';
 
 /**
- * @typedef {Object} WebCPUResult
+ * Utility to estimate the number of usable cores to perform data processing in the browser, takes ~2 seconds. Returns
+ * a {@link Promise} that resolves to a {@link WebCPUResult}.
  *
- * @property {number|null} reportedCores
- * The result of `navigator.hardwareConcurrency` or `null` if not supported. `navigator.hardwareConcurrency` returns the
- * total number of cores in the system, physical and logical. This is not particularly useful for data computations
- * because logical cores do no increase and, in some cases, even hinder performance.
+ * ### Installation
+ * ```
+ * yarn add webcpu
+ * ```
+ * or
+ * ```
+ * npm install webcpu
+ * ```
  *
- * @property {number} estimatedIdleCores
- * This number represents the estimated number of cores that can be used to compute a repetitive task, like data
- * computations, in parallel. The result of the estimation is affected by system workload at the time of the detection,
- * if this number is used to spawn threads, it is recommended to re-run the detection algorithm periodically to always
- * use an optimal number of cores when computing data.
+ * ### Usage
+ * ```
+ * import {WebCPU} from 'webcpu';
  *
- * @property {number} estimatedPhysicalCores
- * Given the reported number of cores and the result of estimated idle cores, this number represents the "best guess"
- * for the total number of physical cores in the system. This number of threads is safe to use on all platforms.
- */
-
-/**
- * Namespace for the functions used to estimate the number of cores in this machine's CPU, takes ~2 seconds.
+ * WebCPU.detectCPU().then(result => {
+ *     console.log(`Reported Cores: ${result.reportedCores}`);
+ *     console.log(`Estimated Idle Cores: ${result.estimatedIdleCores}`);
+ *     console.log(`Estimated Physical Cores: ${result.estimatedPhysicalCores}`);
+ * });
+ * ```
  *
- * Returns an object with the `reportedCores`, `estimatedIdleCores` and `estimatedPhysicalCores`.
- *
- * The core estimation is affected by the other tasks in the system, usually the OS scheduler is efficient enough that
+ * The core estimation is affected by other tasks in the system, usually the OS scheduler is efficient enough that
  * light tasks (playing music, idle programs, background updates, etc) are evenly distributed across cores and so they
  * will not affect the result of this estimation. Heavy tasks do have an effect in the results of the estimation, it is
  * recommended that you avoid performing heavy tasks while the estimation is running, it is considered good practice to
@@ -38,12 +38,12 @@ import CPUWorker from 'worker-loader?inline=true!./WebCPU.worker';
  * number of cores in the system.
  *
  * The current algorithm returns bad estimations for CPUs with asymmetric cores (usually mobile ARM chips) because, as
- * explained above, it detects the changes in number of operations between thread counts. Asymmetric cores will complete
+ * explained above, it detects the changes in number of operations between threads. Asymmetric cores will complete
  * a different number of operations depending on the power of the core the task is scheduled on. Although the returned
  * estimations will be incorrect, they are safe to use to spawn threads.
  *
- * This method DOES NOT estimate logical cores, instead it uses `navigator.hardwareConcurrency` if available or simply
- * returns the same number as physical cores.
+ * This utility DOES NOT estimate logical cores, instead it uses `navigator.hardwareConcurrency` (if available) or simply
+ * returns the same number as the estimated physical cores.
  */
 export class WebCPU {
     /**
@@ -264,3 +264,22 @@ export class WebCPU {
         return combined >= threshold;
     }
 }
+
+/**
+ * @typedef {Object} WebCPUResult
+ *
+ * @property {number|null} reportedCores
+ * The result of `navigator.hardwareConcurrency` or `null` if not supported. `navigator.hardwareConcurrency` returns the
+ * total number of cores in the system, physical and logical. This is not particularly useful for data computations
+ * because logical cores do no increase and, in some cases, even hinder performance.
+ *
+ * @property {number} estimatedIdleCores
+ * This number represents the estimated number of cores that can be used to compute a repetitive task, like data
+ * computations, in parallel. The result of the estimation is affected by system workload at the time of the detection,
+ * if this number is used to spawn threads, it is recommended to re-run the detection algorithm periodically to always
+ * use an optimal number of cores when computing data.
+ *
+ * @property {number} estimatedPhysicalCores
+ * Given the reported number of cores and the result of estimated idle cores, this number represents the "best guess"
+ * for the total number of physical cores in the system. This number of threads is safe to use on all platforms.
+ */

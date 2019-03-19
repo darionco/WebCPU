@@ -3,6 +3,7 @@
  * @param {number} duration - The duration of this workload in milliseconds
  * @param {number} id - The id of this thread.
  * @returns {{elapsed: number, result: number, id: *, iterations: number}}
+ * @private
  */
 function runWorkload(duration, id) {
     const start = performance.now();
@@ -33,7 +34,8 @@ function runWorkload(duration, id) {
  * The messages cane be:
  * `init` - to initialize this thread, takes care of briefly running to workload to allow CPUs to cache the code
  * `workload` - runs the workload on this thread for 10ms and returns the results to the calling thread
- * @param {Event} e - The posted message event.
+ * @param {MessageEvent} e - The posted message event.
+ * @private
  */
 self.onmessage = e => {
     const message = e.data;
