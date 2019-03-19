@@ -24,6 +24,7 @@ import CPUWorker from 'worker!./WebCPU.worker.js';
  * });
  * ```
  *
+ * ### Description
  * The core estimation is affected by other tasks in the system, usually the OS scheduler is efficient enough that
  * light tasks (playing music, idle programs, background updates, etc) are evenly distributed across cores and so they
  * will not affect the result of this estimation. Heavy tasks do have an effect in the results of the estimation, it is
@@ -44,6 +45,8 @@ import CPUWorker from 'worker!./WebCPU.worker.js';
  *
  * This utility DOES NOT estimate logical cores, instead it uses `navigator.hardwareConcurrency` (if available) or simply
  * returns the same number as the estimated physical cores.
+ *
+ * ## Methods
  */
 export class WebCPU {
     /**
@@ -271,7 +274,7 @@ export class WebCPU {
  * @property {number|null} reportedCores
  * The result of `navigator.hardwareConcurrency` or `null` if not supported. `navigator.hardwareConcurrency` returns the
  * total number of cores in the system, physical and logical. This is not particularly useful for data computations
- * because logical cores do no increase and, in some cases, even hinder performance.
+ * because logical cores do no improve and, in some cases, even hinder performance in repetitive tasks.
  *
  * @property {number} estimatedIdleCores
  * This number represents the estimated number of cores that can be used to compute a repetitive task, like data
