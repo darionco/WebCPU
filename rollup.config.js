@@ -56,6 +56,12 @@ if (isBrowser) {
         format: 'umd',
         name: packageJson.name,
     });
+
+    config.output.push({
+        file: path.resolve(__dirname, `dist/iife/${outputName}`),
+        format: 'iife',
+        name: packageJson.name,
+    });
 }
 
 module.exports = config;
