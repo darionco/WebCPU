@@ -1,6 +1,6 @@
 {
     "name": "webcpu",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "description": "Detect the number of usable cores to perform data processing in the browser",
     "main": "src/index.js",
     "module": "dist/esm/webcpu.js",
