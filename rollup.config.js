@@ -11,7 +11,7 @@ const isBrowser = (process.env.TARGET === 'browser');
 const outputName = JS_OUTPUT;
 
 const config = {
-    input: path.resolve(__dirname, packageJson.main),
+    input: path.resolve(__dirname, packageJson.entry),
     output: [],
     plugins: [
         eslint(),
