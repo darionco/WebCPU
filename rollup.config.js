@@ -3,8 +3,8 @@
 const path = require('path');
 const packageJson = require('./package.json');
 const eslint = require('rollup-plugin-eslint').eslint;
-const bundleWorker = require('rollup-plugin-bundle-worker');
 const liveServer = require('rollup-plugin-live-server');
+const webWorkerLoader = require('rollup-plugin-web-worker-loader');
 
 const JS_OUTPUT = `${packageJson.name}.js`;
 const isBrowser = (process.env.TARGET === 'browser');
@@ -15,7 +15,7 @@ const config = {
     output: [],
     plugins: [
         eslint(),
-        bundleWorker(),
+        webWorkerLoader(),
     ],
 };
 
