@@ -14,25 +14,54 @@ let runWorkload = () => {
  * @private
  */
 function runWorkloadJS(duration, id) {
+    const sin = Math.sin;
+    const cos = Math.cos;
+    const M_PI = Math.PI;
+
+    let creal = -0.8;
+    let cimag = 0.156;
+
+    let frame = 0;
+
+    let y;
+    let x;
+    let i;
+    let ii;
+
+    let cx;
+    let cy;
+    let xt;
+
     const start = performance.now();
     let end = start;
-    let a = 0x08a90db3;
-    let b = 0xabd209a0;
-    let c = 0x29019b32;
-    let d = 0x01ab3291;
-    let i;
 
-    for (i = 0; end - start < duration; ++i, end = performance.now()) {
-        a = (b ^ a) >> 1;
-        b = (c ^ b) << 1;
-        c = (d ^ c) >> 1;
-        d = (a ^ d) << 1;
+    for (ii = 0; end - start < duration; ++ii, end = performance.now()) {
+        for(y = 0; y < 200; ++y)
+        {
+            for(x = 0; x < 200; ++x)
+            {
+                cx = -2 + x / 50;
+                cy = -2 + y / 50;
+                i = 0;
+
+                do
+                {
+                    xt = cx * cx - cy * cy + creal;
+                    cy = 2 * cx * cy + cimag;
+                    cx = xt;
+                }
+                while ((cx * cx + cy * cy < 4) && ++i < 25);
+            }
+        }
+        ++frame;        // increase the number of the frame
+        creal= -0.8 + 0.6 * sin(frame / (M_PI * 20));    // calculate the new coordinates
+        cimag= 0.156 + 0.4 * cos(frame / (M_PI * 40));   // of the c point
     }
 
     return {
         elapsed: end - start,
-        iterations: i,
-        result: a,
+        iterations: frame,
+        result: xt,
         id,
     };
 }
