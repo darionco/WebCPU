@@ -1,3 +1,11 @@
+let wasm = null;
+let memory = null;
+let view = null;
+
+let runWorkload = () => {
+    throw 'ERROR: Worker has not been initialized!';
+};
+
 /**
  * Function to run the numeric workload in the current thread for the specified amount of time.
  * @param {number} duration - The duration of this workload in milliseconds
@@ -5,7 +13,7 @@
  * @returns {{elapsed: number, result: number, id: *, iterations: number}}
  * @private
  */
-function runWorkload(duration, id) {
+function runWorkloadJS(duration, id) {
     const start = performance.now();
     let end = start;
     let a = 0x08a90db3;
@@ -29,6 +37,16 @@ function runWorkload(duration, id) {
     };
 }
 
+function runWorkloadWASM(duration, id) {
+    wasm.exports._runWorkload(duration, 4);
+    return {
+        iterations: view.getUint32(4, true),
+        result: view.getUint32(8, true),
+        elapsed: view.getFloat32(12, true),
+        id,
+    };
+}
+
 /**
  * Handles events sent to this thread, from other threads, through the `self` object.
  * The messages cane be:
@@ -42,6 +60,21 @@ self.onmessage = e => {
 
     switch (message.type) {
         case 'init':
+            if (message.wasm) {
+                const memorySize = 16;
+                memory = new WebAssembly.Memory({initial: memorySize, maximum: memorySize});
+                view = new DataView(memory.buffer);
+                wasm = new WebAssembly.Instance(message.wasm, {
+                    env: {
+                        _now: performance.now.bind(performance),
+                        memory: memory,
+                    },
+                });
+                runWorkload = runWorkloadWASM;
+            } else {
+                runWorkload = runWorkloadJS;
+
+            }
             runWorkload(1, 0);
             self.postMessage('success');
             break;

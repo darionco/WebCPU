@@ -1,4 +1,5 @@
 import CPUWorker from 'web-worker:./WebCPU.worker';
+import workloadWASM from './wasm/workload.wasm';
 
 /**
  * Utility to estimate the number of usable cores to perform data processing in the browser, takes ~2 seconds. Returns
@@ -54,14 +55,19 @@ export class WebCPU {
      * @param {boolean=} hardcore - Engages hardcore mode, which kills all the workers after every test.
      * @returns {Promise<WebCPUResult>} - Result of the estimation.
      */
-    static async detectCPU(hardcore = true) {
+    static async detectCPU(hardcore = false) {
         const reportedCores = navigator.hardwareConcurrency ? navigator.hardwareConcurrency : null;
         const maxCoresToTest = reportedCores ? reportedCores : Number.MAX_SAFE_INTEGER;
         const workers = [];
         const loops = 2;
         let baseStats;
 
-        workers.push(await this._initWorker());
+        let wasmModule = null;
+        if (WebAssembly && WebAssembly.compileStreaming) {
+            wasmModule = await WebAssembly.compileStreaming(fetch(workloadWASM));
+        }
+
+        workers.push(await this._initWorker(wasmModule));
         await this._testWorkers(workers, loops);
         baseStats = await this._testWorkers(workers, loops);
         // console.log(baseStats);
@@ -77,7 +83,7 @@ export class WebCPU {
             ++threadCount;
             const promises = [];
             for (let i = workers.length; i < threadCount; ++i) {
-                promises.push(this._initWorker().then(worker => workers.push(worker)));
+                promises.push(this._initWorker(wasmModule).then(worker => workers.push(worker)));
             }
             await Promise.all(promises);
             promises.length = 0;
@@ -220,10 +226,11 @@ export class WebCPU {
 
     /**
      * Allocates and initializes a worker.
+     * @param {WebAssembly.Module=} wasm - The WASM module, if available, that contains the workload.
      * @returns {Promise<any>}
      * @private
      */
-    static _initWorker() {
+    static _initWorker(wasm = null) {
         return new Promise((resolve, reject) => {
             const worker = new CPUWorker();
 
@@ -237,7 +244,7 @@ export class WebCPU {
                 }
             };
 
-            worker.postMessage({type: 'init'});
+            worker.postMessage({type: 'init', wasm});
         });
     }
 
