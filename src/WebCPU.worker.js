@@ -7,7 +7,7 @@ let runWorkload = () => {
 };
 
 /**
- * Function to run the numeric workload in the current thread for the specified amount of time.
+ * Function to run the numeric workload in the current thread for the specified amount of time in JavaScript.
  * @param {number} duration - The duration of this workload in milliseconds
  * @param {number} id - The id of this thread.
  * @returns {{elapsed: number, result: number, id: *, iterations: number}}
@@ -37,6 +37,14 @@ function runWorkloadJS(duration, id) {
     };
 }
 
+/**
+ * Function to run the numeric workload in the current thread for the specified amount of time in WASM.
+ * Note: the WASM module must be pre-loaded by sending the `init` message from the main thread.
+ * @param {number} duration - The duration of this workload in milliseconds
+ * @param {number} id - The id of this thread.
+ * @returns {{elapsed: number, result: number, id: *, iterations: number}}
+ * @private
+ */
 function runWorkloadWASM(duration, id) {
     wasm.exports._runWorkload(duration, 4);
     return {
