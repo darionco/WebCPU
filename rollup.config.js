@@ -4,6 +4,7 @@ const path = require('path');
 const packageJson = require('./package.json');
 const eslint = require('rollup-plugin-eslint').eslint;
 const liveServer = require('rollup-plugin-live-server');
+const urlLoader = require('rollup-plugin-url');
 const webWorkerLoader = require('rollup-plugin-web-worker-loader');
 
 const JS_OUTPUT = `${packageJson.name}.js`;
@@ -16,6 +17,11 @@ const config = {
     plugins: [
         eslint(),
         webWorkerLoader(),
+        urlLoader({
+            limit: 1024 * 1024 * 1024, // 1GB - Basically unlimited
+            include: ['**/*.wasm'],
+            emitFiles: false,
+        }),
     ],
 };
 
