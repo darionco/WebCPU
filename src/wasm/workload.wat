@@ -9,61 +9,7 @@
   (type (;7;) (func (param f64) (result f64)))
   (import "env" "_now" (func (;0;) (type 0)))
   (import "env" "memory" (memory (;0;) 16 16))
-  (func (;1;) (type 4) (param f64 f64) (result f64)
-    (local f64 f64 f64 f64)
-    local.get 0
-    local.get 0
-    f64.mul
-    local.tee 2
-    local.get 2
-    f64.mul
-    local.set 3
-    f64.const 0x1p+0 (;=1;)
-    local.get 2
-    f64.const 0x1p-1 (;=0.5;)
-    f64.mul
-    local.tee 4
-    f64.sub
-    local.tee 5
-    f64.const 0x1p+0 (;=1;)
-    local.get 5
-    f64.sub
-    local.get 4
-    f64.sub
-    local.get 2
-    local.get 2
-    local.get 2
-    local.get 2
-    f64.const 0x1.a01a019cb159p-16 (;=2.48016e-05;)
-    f64.mul
-    f64.const -0x1.6c16c16c15177p-10 (;=-0.00138889;)
-    f64.add
-    f64.mul
-    f64.const 0x1.555555555554cp-5 (;=0.0416667;)
-    f64.add
-    f64.mul
-    local.get 3
-    local.get 3
-    f64.mul
-    local.get 2
-    f64.const 0x1.1ee9ebdb4b1c4p-29 (;=2.08757e-09;)
-    local.get 2
-    f64.const 0x1.8fae9be8838d4p-37 (;=1.13596e-11;)
-    f64.mul
-    f64.sub
-    f64.mul
-    f64.const -0x1.27e4f809c52adp-22 (;=-2.75573e-07;)
-    f64.add
-    f64.mul
-    f64.add
-    f64.mul
-    local.get 0
-    local.get 1
-    f64.mul
-    f64.sub
-    f64.add
-    f64.add)
-  (func (;2;) (type 3) (param f64 f64 i32) (result f64)
+  (func (;1;) (type 3) (param f64 f64 i32) (result f64)
     (local f64 f64 f64)
     local.get 0
     local.get 0
@@ -124,6 +70,60 @@
       local.get 0
       f64.add
     end)
+  (func (;2;) (type 4) (param f64 f64) (result f64)
+    (local f64 f64 f64 f64)
+    local.get 0
+    local.get 0
+    f64.mul
+    local.tee 2
+    local.get 2
+    f64.mul
+    local.set 3
+    f64.const 0x1p+0 (;=1;)
+    local.get 2
+    f64.const 0x1p-1 (;=0.5;)
+    f64.mul
+    local.tee 4
+    f64.sub
+    local.tee 5
+    f64.const 0x1p+0 (;=1;)
+    local.get 5
+    f64.sub
+    local.get 4
+    f64.sub
+    local.get 2
+    local.get 2
+    local.get 2
+    local.get 2
+    f64.const 0x1.a01a019cb159p-16 (;=2.48016e-05;)
+    f64.mul
+    f64.const -0x1.6c16c16c15177p-10 (;=-0.00138889;)
+    f64.add
+    f64.mul
+    f64.const 0x1.555555555554cp-5 (;=0.0416667;)
+    f64.add
+    f64.mul
+    local.get 3
+    local.get 3
+    f64.mul
+    local.get 2
+    f64.const 0x1.1ee9ebdb4b1c4p-29 (;=2.08757e-09;)
+    local.get 2
+    f64.const 0x1.8fae9be8838d4p-37 (;=1.13596e-11;)
+    f64.mul
+    f64.sub
+    f64.mul
+    f64.const -0x1.27e4f809c52adp-22 (;=-2.75573e-07;)
+    f64.add
+    f64.mul
+    f64.add
+    f64.mul
+    local.get 0
+    local.get 1
+    f64.mul
+    f64.sub
+    f64.add
+    f64.add)
   (func (;3;) (type 2) (param f64 i32) (result f64)
     (local i32 i32)
     local.get 1
@@ -526,7 +526,7 @@
             local.get 2
             i32.const 1
             i32.add
-            call 9
+            call 8
             local.set 2
             local.get 4
             f64.load
@@ -791,7 +791,7 @@
       local.tee 13
       f64.const 0x1.f6a7a2955385ep+5 (;=62.8319;)
       f64.div
-      call 7
+      call 6
       f64.const 0x1.3333333333333p-1 (;=0.6;)
       f64.mul
       f64.const -0x1.999999999999ap-1 (;=-0.8;)
@@ -801,7 +801,7 @@
       local.get 13
       f64.const 0x1.f6a7a2955385ep+6 (;=125.664;)
       f64.div
-      call 8
+      call 7
       f64.const 0x1.999999999999ap-2 (;=0.4;)
       f64.mul
       f64.const 0x1.3f7ced916872bp-3 (;=0.156;)
@@ -829,88 +829,7 @@
     local.get 1
     local.get 0
     i32.store offset=4)
-  (func (;6;) (type 1) (param i32 i32)
-    (local i32 i32 i32 i32 i32 f32 f32 f32)
-    call 0
-    f32.demote_f64
-    local.tee 7
-    local.get 7
-    f32.sub
-    local.tee 8
-    local.get 0
-    f32.convert_i32_s
-    local.tee 9
-    f32.lt
-    if  ;; label = @1
-      i32.const 145296819
-      local.set 3
-      i32.const 0
-      local.set 0
-      i32.const 27996817
-      local.set 4
-      i32.const 687971122
-      local.set 5
-      i32.const -1412298336
-      local.set 2
-      loop  ;; label = @2
-        local.get 2
-        local.get 5
-        i32.xor
-        i32.const 1
-        i32.shl
-        local.set 6
-        local.get 4
-        local.get 5
-        i32.xor
-        i32.const 1
-        i32.shr_s
-        local.set 5
-        local.get 4
-        local.get 2
-        local.get 3
-        i32.xor
-        i32.const 1
-        i32.shr_s
-        local.tee 3
-        i32.xor
-        i32.const 1
-        i32.shl
-        local.set 2
-        local.get 0
-        i32.const 1
-        i32.add
-        local.set 0
-        call 0
-        f32.demote_f64
-        local.get 7
-        f32.sub
-        local.tee 8
-        local.get 9
-        f32.lt
-        if  ;; label = @3
-          local.get 2
-          local.set 4
-          local.get 6
-          local.set 2
-          br 1 (;@2;)
-        end
-      end
-    else
-      i32.const 145296819
-      local.set 3
-      i32.const 0
-      local.set 0
-    end
-    local.get 1
-    local.get 0
-    i32.store
-    local.get 1
-    local.get 8
-    f32.store offset=8
-    local.get 1
-    local.get 3
-    i32.store offset=4)
-  (func (;7;) (type 7) (param f64) (result f64)
+  (func (;6;) (type 7) (param f64) (result f64)
     (local i32 i32)
     global.get 0
     local.set 1
@@ -936,7 +855,7 @@
         local.get 0
         f64.const 0x0p+0 (;=0;)
         i32.const 0
-        call 2
+        call 1
         local.set 0
       end
     else
@@ -965,14 +884,14 @@
               local.get 1
               f64.load offset=8
               i32.const 1
-              call 2
+              call 1
               br 3 (;@2;)
             end
             local.get 1
             f64.load
             local.get 1
             f64.load offset=8
-            call 1
+            call 2
             br 2 (;@2;)
           end
           local.get 1
@@ -980,7 +899,7 @@
           local.get 1
           f64.load offset=8
           i32.const 1
-          call 2
+          call 1
           f64.neg
           br 1 (;@2;)
         end
@@ -988,7 +907,7 @@
         f64.load
         local.get 1
         f64.load offset=8
-        call 1
+        call 2
         f64.neg
       end
       local.set 0
@@ -996,7 +915,7 @@
     local.get 1
     global.set 0
     local.get 0)
-  (func (;8;) (type 7) (param f64) (result f64)
+  (func (;7;) (type 7) (param f64) (result f64)
     (local i32 i32 f64)
     global.get 0
     local.set 1
@@ -1023,7 +942,7 @@
       else
         local.get 0
         f64.const 0x0p+0 (;=0;)
-        call 1
+        call 2
       end
     else
       block (result f64)  ;; label = @2
@@ -1050,7 +969,7 @@
               f64.load
               local.get 1
               f64.load offset=8
-              call 1
+              call 2
               br 3 (;@2;)
             end
             local.get 1
@@ -1058,7 +977,7 @@
             local.get 1
             f64.load offset=8
             i32.const 1
-            call 2
+            call 1
             f64.neg
             br 2 (;@2;)
           end
@@ -1066,7 +985,7 @@
           f64.load
           local.get 1
           f64.load offset=8
-          call 1
+          call 2
           f64.neg
           br 1 (;@2;)
         end
@@ -1075,14 +994,14 @@
         local.get 1
         f64.load offset=8
         i32.const 1
-        call 2
+        call 1
       end
     end
     local.set 3
     local.get 1
     global.set 0
     local.get 3)
-  (func (;9;) (type 6) (param i32 i32 i32 i32) (result i32)
+  (func (;8;) (type 6) (param i32 i32 i32 i32) (result i32)
     (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 f64)
     global.get 0
     local.set 11
@@ -1965,6 +1884,5 @@
     i32.and)
   (global (;0;) (mut i32) (i32.const 3168))
   (export "_runWorkload" (func 5))
-  (export "_runWorkload_old" (func 6))
   (data (;0;) (i32.const 1024) "\03\00\00\00\04\00\00\00\04\00\00\00\06\00\00\00\83\f9\a2\00DNn\00\fc)\15\00\d1W'\00\dd4\f5\00b\db\c0\00<\99\95\00A\90C\00cQ\fe\00\bb\de\ab\00\b7a\c5\00:n$\00\d2MB\00I\06\e0\00\09\ea.\00\1c\92\d1\00\eb\1d\fe\00)\b1\1c\00\e8>\a7\00\f55\82\00D\bb.\00\9c\e9\84\00\b4&p\00A~_\00\d6\919\00S\839\00\9c\f49\00\8b_\84\00(\f9\bd\00\f8\1f;\00\de\ff\97\00\0f\98\05\00\11/\ef\00\0aZ\8b\00m\1fm\00\cf~6\00\09\cb'\00FO\b7\00\9ef?\00-\ea_\00\ba'u\00\e5\eb\c7\00={\f1\00\f79\07\00\92R\8a\00\fbk\ea\00\1f\b1_\00\08]\8d\000\03V\00{\fcF\00\f0\abk\00 \bc\cf\006\f4\9a\00\e3\a9\1d\00^a\91\00\08\1b\e6\00\85\99e\00\a0\14_\00\8d@h\00\80\d8\ff\00'sM\00\06\061\00\caV\15\00\c9\a8s\00{\e2`\00k\8c\c0")
   (data (;1;) (i32.const 1315) "@\fb!\f9?\00\00\00\00-Dt>\00\00\00\80\98F\f8<\00\00\00`Q\ccx;\00\00\00\80\83\1b\f09\00\00\00@ %z8\00\00\00\80\22\82\e36\00\00\00\00\1d\f3i5"))

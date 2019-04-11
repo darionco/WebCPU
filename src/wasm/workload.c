@@ -9,29 +9,6 @@ typedef struct {
     float elapsed;
 } Result;
 
-void EMSCRIPTEN_KEEPALIVE runWorkload_old(int duration, Result *result)
-{
-    int a = 0x08a90db3;
-    int b = 0xabd209a0;
-    int c = 0x29019b32;
-    int d = 0x01ab3291;
-    int i;
-
-    float start = now();
-    float end = start;
-
-    for (i = 0; end - start < duration; ++i, end = now()) {
-        a = (b ^ a) >> 1;
-        b = (c ^ b) << 1;
-        c = (d ^ c) >> 1;
-        d = (a ^ d) << 1;
-    }
-
-    result->iterations = i;
-    result->elapsed = end - start;
-    result->value = a;
-}
-
 void EMSCRIPTEN_KEEPALIVE runWorkload(int duration, Result *result)
 {
     float creal = -0.8;
