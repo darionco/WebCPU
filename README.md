@@ -54,7 +54,7 @@ Estimates the number of CPUs in this machine.
 
 #### Parameters
 
--   `hardcore` **[boolean][3]?** Engages hardcore mode, which kills all the workers after every test. (optional, default `true`)
+-   `hardcore` **[boolean][3]?** Engages hardcore mode, which kills all the workers after every test. (optional, default `false`)
 
 Returns **[Promise][4]&lt;[WebCPUResult][5]>** Result of the estimation.
 
