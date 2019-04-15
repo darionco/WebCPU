@@ -1,3 +1,7 @@
+const isNodeJS = Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]';
+const _self = isNodeJS ? require('worker_threads').parentPort : self; // eslint-disable-line
+const _performance = isNodeJS ? require('perf_hooks').performance : performance; // eslint-disable-line
+
 let wasm = null;
 let memory = null;
 let view = null;
@@ -32,10 +36,10 @@ function runWorkloadJS(duration, id) {
     let cy;
     let xt;
 
-    const start = performance.now();
+    const start = _performance.now();
     let end = start;
 
-    for (ii = 0; end - start < duration; ++ii, end = performance.now()) {
+    for (ii = 0; end - start < duration; ++ii, end = _performance.now()) {
         for (y = 0; y < 200; ++y) {
             for (x = 0; x < 200; ++x) {
                 cx = -2 + x / 50;
@@ -89,8 +93,8 @@ function runWorkloadWASM(duration, id) {
  * @param {MessageEvent} e - The posted message event.
  * @private
  */
-self.onmessage = e => {
-    const message = e.data;
+(_self.on || _self.addEventListener).call(_self, 'message', e => {
+    const message = e.data || e;
 
     switch (message.type) {
         case 'init':
@@ -100,7 +104,7 @@ self.onmessage = e => {
                 view = new DataView(memory.buffer);
                 wasm = new WebAssembly.Instance(message.wasm, {
                     env: {
-                        _now: performance.now.bind(performance),
+                        _now: _performance.now.bind(_performance),
                         memory: memory,
                     },
                 });
@@ -109,12 +113,12 @@ self.onmessage = e => {
                 runWorkload = runWorkloadJS;
             }
             runWorkload(1, 0);
-            self.postMessage('success');
+            _self.postMessage('success');
             break;
 
         case 'workload': {
             setTimeout(() => {
-                self.postMessage(runWorkload(10, message.id));
+                _self.postMessage(runWorkload(10, message.id));
             }, message.startTime - Date.now());
             break;
         }
@@ -122,4 +126,4 @@ self.onmessage = e => {
         default:
             break;
     }
-};
+});

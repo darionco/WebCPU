@@ -53,18 +53,89 @@ export class WebCPU {
     /**
      * Estimates the number of CPUs in this machine.
      * @param {boolean=} hardcore - Engages hardcore mode, which kills all the workers after every test.
+     * @param {boolean=} estimateInNode - If `true`, forces core estimation in Node.js rather than querying the system.
      * @returns {Promise<WebCPUResult>} - Result of the estimation.
      */
-    static async detectCPU(hardcore = false) {
-        const reportedCores = navigator.hardwareConcurrency ? navigator.hardwareConcurrency : null;
+    static async detectCPU(hardcore = false, estimateInNode = false) {
+        /* handle running in node.js */
+        const isNodeJS = Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]';
+
+        let reportedCores;
+
+        if (isNodeJS) {
+            /* we are running in node, emulate the response */
+            /* eslint-disable */
+            const os = require('os');
+            const childProcess = require('child_process');
+
+            reportedCores = require('os').cpus().length;
+
+            if (!estimateInNode) {
+                /* code taken from https://gist.github.com/brandon93s/a46fb07b0dd589dc34e987c33d775679 */
+                const exec = function exec(command) {
+                    return childProcess.execSync(command, {encoding: 'utf8'});
+                };
+
+                const platform = os.platform();
+                let amount;
+
+                if (platform === 'linux') {
+                    const output = exec('lscpu -p | egrep -v "^#" | sort -u -t, -k 2,4 | wc -l');
+                    amount = parseInt(output.trim(), 10);
+                } else if (platform === 'darwin') {
+                    const output = exec('sysctl -n hw.physicalcpu_max');
+                    amount = parseInt(output.trim(), 10);
+                } else if (platform === 'windows') {
+                    const output = exec('WMIC CPU Get NumberOfCores');
+                    amount = output.split(os.EOL)
+                        .map(function parse(line) {
+                            return parseInt(line)
+                        })
+                        .filter(function numbers(value) {
+                            return !isNaN(value)
+                        })
+                        .reduce(function add(sum, number) {
+                            return sum + number
+                        }, 0);
+                } else {
+                    const cores = os.cpus().filter(function (cpu, index) {
+                        const hasHyperthreading = cpu.model.includes('Intel');
+                        const isOdd = index % 2 === 1;
+                        return !hasHyperthreading || isOdd;
+                    });
+                    amount = cores.length;
+                }
+
+                return {
+                    reportedCores: reportedCores,
+                    estimatedIdleCores: amount,
+                    estimatedPhysicalCores: amount,
+                }
+            }
+            /* eslint-enable */
+        } else {
+            reportedCores = navigator.hardwareConcurrency ? navigator.hardwareConcurrency : null;
+        }
+
         const maxCoresToTest = reportedCores ? reportedCores : Number.MAX_SAFE_INTEGER;
         const workers = [];
         const loops = 2;
         let baseStats;
 
         let wasmModule = null;
-        if (WebAssembly && WebAssembly.compileStreaming) {
-            wasmModule = await WebAssembly.compileStreaming(fetch(workloadWASM));
+        if (WebAssembly) {
+            if (WebAssembly.compileStreaming) {
+                wasmModule = await WebAssembly.compileStreaming(fetch(workloadWASM));
+            } else if (WebAssembly.compile) {
+                if (isNodeJS) {
+                    const buffer = Buffer.from(workloadWASM.substr(workloadWASM.indexOf(',') + 1), 'base64');
+                    wasmModule = await WebAssembly.compile(buffer);
+                } else {
+                    const result = await fetch(workloadWASM);
+                    const buffer = await result.arrayBuffer();
+                    wasmModule = await WebAssembly.compile(buffer);
+                }
+            }
         }
 
         workers.push(await this._initWorker(wasmModule));
@@ -215,11 +286,14 @@ export class WebCPU {
      * @private
      */
     static _computeWorker(worker, id, startTime) {
+        const addListener = worker.addEventListener || worker.on;
+        const removeListener = worker.removeEventListener || worker.off;
         return new Promise(resolve => {
-            worker.onmessage = e => {
-                worker.onmessage = null;
-                resolve(e.data);
+            const handler = e => {
+                removeListener.call(worker, 'message', handler);
+                resolve(e.data || e);
             };
+            addListener.call(worker, 'message', handler);
             worker.postMessage({type: 'workload', id, startTime});
         });
     }
@@ -234,16 +308,20 @@ export class WebCPU {
         return new Promise((resolve, reject) => {
             const worker = new CPUWorker();
 
-            worker.onmessage = e => {
-                worker.onmessage = null;
-                if (e.data === 'success') {
+            const addListener = worker.addEventListener || worker.on;
+            const removeListener = worker.removeEventListener || worker.off;
+
+            const handler = e => {
+                removeListener.call(worker, 'message', handler);
+                const message = e.data || e;
+                if (message === 'success') {
                     resolve(worker);
                 } else {
                     worker.terminate();
                     reject();
                 }
             };
-
+            addListener.call(worker, 'message', handler);
             worker.postMessage({type: 'init', wasm});
         });
     }
