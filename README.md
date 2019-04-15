@@ -2,8 +2,14 @@
 
 ## WebCPU
 
-Utility to estimate the number of usable cores to perform data processing in the browser, takes ~2 seconds. Returns
-a [Promise][1] that resolves to a [WebCPUResult][2].
+Utility to estimate the number of usable cores to perform data processing in node.js and the browser.
+
+In node.js, it uses the code from [this gist][1] to
+query the number of CPUs on the system. It can be configured to run the same estimation as in the browser.
+
+In the browser, takes ~2 seconds to estimate the number of CPUs, uses WASM (when available) to perform the estimation.
+
+Returns a [Promise][2] that resolves to a [WebCPUResult][3].
 
 ### Installation
 
@@ -54,36 +60,39 @@ Estimates the number of CPUs in this machine.
 
 #### Parameters
 
--   `hardcore` **[boolean][3]?** Engages hardcore mode, which kills all the workers after every test. (optional, default `false`)
+-   `hardcore` **[boolean][4]?** Engages hardcore mode, which kills all the workers after every test. (optional, default `false`)
+-   `estimateInNode` **[boolean][4]?** If `true`, forces core estimation in Node.js rather than querying the system. (optional, default `false`)
 
-Returns **[Promise][4]&lt;[WebCPUResult][5]>** Result of the estimation.
+Returns **[Promise][5]&lt;[WebCPUResult][6]>** Result of the estimation.
 
 ## WebCPUResult
 
-Type: [Object][6]
+Type: [Object][7]
 
 ### Properties
 
--   `reportedCores` **([number][7] | null)** The result of `navigator.hardwareConcurrency` or `null` if not supported. `navigator.hardwareConcurrency` returns the
+-   `reportedCores` **([number][8] | null)** The result of `navigator.hardwareConcurrency` or `null` if not supported. `navigator.hardwareConcurrency` returns the
     total number of cores in the system, physical and logical. This is not particularly useful for data computations
     because logical cores do no improve and, in some cases, even hinder performance in repetitive tasks.
--   `estimatedIdleCores` **[number][7]** This number represents the estimated number of cores that can be used to compute a repetitive task, like data
+-   `estimatedIdleCores` **[number][8]** This number represents the estimated number of cores that can be used to compute a repetitive task, like data
     computations, in parallel. The result of the estimation is affected by system workload at the time of the detection,
     if this number is used to spawn threads, it is recommended to re-run the detection algorithm periodically to always
     use an optimal number of cores when computing data.
--   `estimatedPhysicalCores` **[number][7]** Given the reported number of cores and the result of estimated idle cores, this number represents the "best guess"
+-   `estimatedPhysicalCores` **[number][8]** Given the reported number of cores and the result of estimated idle cores, this number represents the "best guess"
     for the total number of physical cores in the system. This number of threads is safe to use on all platforms.
 
-[1]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
+[1]: https://gist.github.com/brandon93s/a46fb07b0dd589dc34e987c33d775679
 
-[2]: #webcpuresult
+[2]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
 
-[3]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+[3]: #webcpuresult
 
-[4]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
+[4]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
 
-[5]: #webcpuresult
+[5]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
 
-[6]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
+[6]: #webcpuresult
 
-[7]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+[7]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
+
+[8]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number

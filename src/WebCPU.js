@@ -2,8 +2,14 @@ import CPUWorker from 'web-worker:./WebCPU.worker';
 import workloadWASM from './wasm/workload.wasm';
 
 /**
- * Utility to estimate the number of usable cores to perform data processing in the browser, takes ~2 seconds. Returns
- * a {@link Promise} that resolves to a {@link WebCPUResult}.
+ * Utility to estimate the number of usable cores to perform data processing in node.js and the browser.
+ *
+ * In node.js, it uses the code from [this gist](https://gist.github.com/brandon93s/a46fb07b0dd589dc34e987c33d775679) to
+ * query the number of CPUs on the system. It can be configured to run the same estimation as in the browser.
+ *
+ * In the browser, takes ~2 seconds to estimate the number of CPUs, uses WASM (when available) to perform the estimation.
+ *
+ * Returns a {@link Promise} that resolves to a {@link WebCPUResult}.
  *
  * ### Installation
  * ```
