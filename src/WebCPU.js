@@ -1,6 +1,9 @@
 import CPUWorker from 'web-worker:./WebCPU.worker';
 import workloadWASM from './wasm/workload.wasm';
 
+const kIsNodeJS = Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]';
+const kRequire = kIsNodeJS ? module.require : null; // eslint-disable-line
+
 /**
  * Utility to estimate the number of usable cores to perform data processing in node.js and the browser.
  *
@@ -63,18 +66,15 @@ export class WebCPU {
      * @returns {Promise<WebCPUResult>} - Result of the estimation.
      */
     static async detectCPU(hardcore = false, estimateInNode = false) {
-        /* handle running in node.js */
-        const isNodeJS = Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]';
-
         let reportedCores;
 
-        if (isNodeJS) {
+        if (kIsNodeJS) {
             /* we are running in node, emulate the response */
             /* eslint-disable */
-            const os = require('os');
-            const childProcess = require('child_process');
+            const os = kRequire('os');
+            const childProcess = kRequire('child_process');
 
-            reportedCores = require('os').cpus().length;
+            reportedCores = kRequire('os').cpus().length;
 
             if (!estimateInNode) {
                 /* code taken from https://gist.github.com/brandon93s/a46fb07b0dd589dc34e987c33d775679 */
@@ -83,7 +83,7 @@ export class WebCPU {
                 };
 
                 const platform = os.platform();
-                let amount;
+                let amount = 0;
 
                 if (platform === 'linux') {
                     const output = exec('lscpu -p | egrep -v "^#" | sort -u -t, -k 2,4 | wc -l');
@@ -103,19 +103,14 @@ export class WebCPU {
                         .reduce(function add(sum, number) {
                             return sum + number
                         }, 0);
-                } else {
-                    const cores = os.cpus().filter(function (cpu, index) {
-                        const hasHyperthreading = cpu.model.includes('Intel');
-                        const isOdd = index % 2 === 1;
-                        return !hasHyperthreading || isOdd;
-                    });
-                    amount = cores.length;
                 }
 
-                return {
-                    reportedCores: reportedCores,
-                    estimatedIdleCores: amount,
-                    estimatedPhysicalCores: amount,
+                if (amount) {
+                    return {
+                        reportedCores: reportedCores,
+                        estimatedIdleCores: amount,
+                        estimatedPhysicalCores: amount,
+                    }
                 }
             }
             /* eslint-enable */
@@ -133,7 +128,7 @@ export class WebCPU {
             if (WebAssembly.compileStreaming) {
                 wasmModule = await WebAssembly.compileStreaming(fetch(workloadWASM));
             } else if (WebAssembly.compile) {
-                if (isNodeJS) {
+                if (kIsNodeJS) {
                     const buffer = Buffer.from(workloadWASM.substr(workloadWASM.indexOf(',') + 1), 'base64');
                     wasmModule = await WebAssembly.compile(buffer);
                 } else {

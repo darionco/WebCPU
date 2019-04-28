@@ -1,6 +1,8 @@
-const isNodeJS = Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]';
-const _self = isNodeJS ? require('worker_threads').parentPort : self; // eslint-disable-line
-const _performance = isNodeJS ? require('perf_hooks').performance : performance; // eslint-disable-line
+const kIsNodeJS = Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]';
+const kRequire = kIsNodeJS ? module.require : null; // eslint-disable-line
+
+const _self = kIsNodeJS ? kRequire('worker_threads').parentPort : self; // eslint-disable-line
+const _performance = kIsNodeJS ? kRequire('perf_hooks').performance : performance; // eslint-disable-line
 
 let wasm = null;
 let memory = null;
