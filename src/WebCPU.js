@@ -24,8 +24,20 @@ const kRequire = kIsNodeJS ? module.require : null; // eslint-disable-line
  * ```
  *
  * ### Usage
+ * In Web:
  * ```
  * import {WebCPU} from 'webcpu';
+ *
+ * WebCPU.detectCPU().then(result => {
+ *     console.log(`Reported Cores: ${result.reportedCores}`);
+ *     console.log(`Estimated Idle Cores: ${result.estimatedIdleCores}`);
+ *     console.log(`Estimated Physical Cores: ${result.estimatedPhysicalCores}`);
+ * });
+ * ```
+ *
+ * In Node:
+ * ```
+ * const WebCPU = require('webcpu/dist/umd/webcpu').WebCPU;
  *
  * WebCPU.detectCPU().then(result => {
  *     console.log(`Reported Cores: ${result.reportedCores}`);
