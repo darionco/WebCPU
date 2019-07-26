@@ -21,10 +21,10 @@
         "documentation": "^12.0.3",
         "eslint": "^6.1.0",
         "npm-run-all": "^4.1.5",
-        "rollup": "^1.9.3",
-        "rollup-plugin-eslint": "^5.0.0",
-        "rollup-plugin-live-server": "^1.0.1",
-        "rollup-plugin-url": "^2.2.1",
+        "rollup": "^1.17.0",
+        "rollup-plugin-eslint": "^7.0.0",
+        "rollup-plugin-live-server": "^1.0.3",
+        "rollup-plugin-url": "^2.2.2",
         "rollup-plugin-web-worker-loader": "^0.5.2"
     },
     "files": [
