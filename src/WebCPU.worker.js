@@ -120,7 +120,7 @@ function runWorkloadWASM(duration, id) {
 
         case 'workload': {
             setTimeout(() => {
-                _self.postMessage(runWorkload(10, message.id));
+                _self.postMessage(runWorkload(25, message.id));
             }, message.startTime - Date.now());
             break;
         }
