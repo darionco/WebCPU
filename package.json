@@ -17,15 +17,15 @@
         "prepublishOnly": "npm-run-all build"
     },
     "devDependencies": {
-        "cross-env": "^5.2.0",
-        "documentation": "^12.0.3",
-        "eslint": "^6.1.0",
+        "cross-env": "^6.0.0",
+        "documentation": "^12.1.2",
+        "eslint": "^6.4.0",
         "npm-run-all": "^4.1.5",
-        "rollup": "^1.17.0",
+        "rollup": "^1.21.4",
         "rollup-plugin-eslint": "^7.0.0",
         "rollup-plugin-live-server": "^1.0.3",
         "rollup-plugin-url": "^2.2.2",
-        "rollup-plugin-web-worker-loader": "^0.5.2"
+        "rollup-plugin-web-worker-loader": "^0.6.0"
     },
     "files": [
         "dist/"
