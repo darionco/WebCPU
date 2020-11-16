@@ -3,13 +3,39 @@
 const path = require('path');
 const packageJson = require('./package.json');
 const eslint = require('rollup-plugin-eslint').eslint;
-const liveServer = require('rollup-plugin-live-server');
 const urlLoader = require('rollup-plugin-url');
 const webWorkerLoader = require('rollup-plugin-web-worker-loader');
+const server = require('live-server');
 
 const JS_OUTPUT = `${packageJson.name}.js`;
 const isBrowser = (process.env.TARGET === 'browser');
 const outputName = JS_OUTPUT;
+
+function liveServer (options = {}) {
+    const defaultParams = {
+        file: 'index.html',
+        host: '0.0.0.0',
+        logLevel: 2,
+        open: false,
+        port: 8080,
+        root: '.',
+        wait: 200,
+    };
+
+    const params = Object.assign({}, defaultParams, options);
+    let running = false;
+
+    return {
+        name: 'liveServer',
+        writeBundle () {
+            if (!running) {
+                running = true;
+                server.start(params);
+                console.log(`live-server running on ${params.port}`);
+            }
+        },
+    };
+}
 
 const config = {
     input: path.resolve(__dirname, packageJson.entry),
