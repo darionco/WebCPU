@@ -63,7 +63,7 @@ if (isBrowser) {
         host: "0.0.0.0",
         root: "www",
         file: "index.html",
-        mount: [['/dist/iife', './dist/iife']],
+        mount: [['/', './dist/iife']],
         open: false,
         wait: 500
     }));
