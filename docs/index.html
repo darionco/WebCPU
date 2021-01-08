@@ -21,6 +21,11 @@
             transform: translate(-50%, -50%);
         }
 
+        .result {
+            padding: 15px;
+            border: solid 2px rgb(196, 196, 196);
+        }
+
         .orange {
             color: rgb(203,119,50);
         }
@@ -32,14 +37,46 @@
         .yellow {
             color: rgb(253, 197, 108);
         }
+
+        .title {
+            width: 100%;
+            color: rgb(43, 43, 43);
+            background-color: rgb(196, 196, 196);
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 6px;
+            padding: 3px 0;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .docs {
+            width: 100%;
+            color: rgb(156, 156, 156);
+            text-align: center;
+            margin-top: 6px;
+            user-select: none;
+            padding: 6px 0;
+        }
+
+        .docs:hover {
+            background-color: rgb(64, 64, 64);
+        }
     </style>
 </head>
 <body>
+<div id="container" class="centered">
+    <div class="title">WebCPU</div>
+    <div id="result" class="result"></div>
+    <a href="https://github.com/darionco/WebCPU#readme"><div class="docs">documentation</div></a>
+</div>
+
 <script>
     async function main() {
-        const container = document.createElement('div');
-        document.body.appendChild(container);
-        container.className = 'centered';
+        const container = document.querySelector('#result');
         container.innerHTML = '<div class="orange">Estimating CPU Cores...</div>';
         const start = performance.now();
         const result = await webcpu.WebCPU.detectCPU();
