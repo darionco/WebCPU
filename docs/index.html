@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebCPU</title>
+    <script type="text/javascript" src="/webcpu.js"></script>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgb(43, 43, 43);
+            color: rgb(196, 196, 196);
+            font-family: monospace;
+        }
+        .centered {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .orange {
+            color: rgb(203,119,50);
+        }
+
+        .purple {
+            color: rgb(147, 114, 164);
+        }
+
+        .yellow {
+            color: rgb(253, 197, 108);
+        }
+    </style>
+</head>
+<body>
+<script>
+    async function main() {
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+        container.className = 'centered';
+        container.innerHTML = '<div class="orange">Estimating CPU Cores...</div>';
+        const start = performance.now();
+        const result = await webcpu.WebCPU.detectCPU();
+        const end = performance.now();
+        container.innerHTML = '<div class="orange">Estimated CPU Cores</div>';
+        container.innerHTML += `<div class="yellow">Took ${Math.round(end - start)}ms</div>`;
+        container.innerHTML += `<div><span class="purple">Reported Cores:</span> ${result.reportedCores}</div>`;
+        container.innerHTML += `<div><span class="purple">Estimated Idle Cores:</span> ${result.estimatedIdleCores}</div>`;
+        container.innerHTML += `<div><span class="purple">Estimated Physical Cores:</span> ${result.estimatedPhysicalCores}</div>`;
+    }
+
+    document.addEventListener('DOMContentLoaded', main);
+</script>
+</body>
+</html>
